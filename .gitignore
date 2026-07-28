@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+backend/venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+frontend/.env
+backend/.env
+
+# Build / runtime
+dist/
+backend/stitch_counter.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
