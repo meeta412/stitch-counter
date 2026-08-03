@@ -1,0 +1,3 @@
+# Only needed when connecting to Supabase/Postgres (DATABASE_URL=postgresql://...)
+# Not required for local SQLite development.
+psycopg2-binary==2.9.10

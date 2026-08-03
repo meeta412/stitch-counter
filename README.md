@@ -23,15 +23,24 @@ Open `http://localhost:5173`. Use `npm run dev` with `--host` (already configure
 
 ### 2. Backend
 
+**Requires Python 3.12 or 3.13** — Python 3.14 is too new for some dependencies (Pydantic, psycopg2).
+
 ```bash
 cd backend
-python -m venv venv
+rm -rf venv
+python3.13 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
 API docs: `http://localhost:8000/docs`
+
+Local dev uses **SQLite** by default — no Postgres install needed. If you later point `DATABASE_URL` at Supabase Postgres, also run:
+
+```bash
+pip install -r requirements-postgres.txt
+```
 
 ### 3. Environment variables
 
@@ -44,6 +53,10 @@ For cloud sync and pattern import:
 - Create a [Supabase](https://supabase.com) project
 - Enable Email and Google auth providers
 - Copy project URL, anon key, and JWT secret
+- In Supabase **Authentication → URL Configuration**, set:
+  - **Site URL:** `http://localhost:5173`
+  - **Redirect URLs:** `http://localhost:5173/**`
+- Set `SUPABASE_URL` in `backend/.env` to the **same** project URL as `VITE_SUPABASE_URL` in `frontend/.env`
 - Add a `GEMINI_API_KEY` for AI pattern parsing
 - Install [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) if you want image/screenshot parsing
 

@@ -32,7 +32,13 @@ export function useAuth() {
 
   const signUp = useCallback(async (email: string, password: string) => {
     if (!supabase) throw new Error('Supabase is not configured')
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    })
     if (error) throw error
   }, [])
 

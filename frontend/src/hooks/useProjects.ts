@@ -14,7 +14,7 @@ export function useProjects() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const isCloud = Boolean(user && session)
+  const isCloud = Boolean(user && session?.access_token)
 
   const refreshCloudProjects = useCallback(async () => {
     const data = await api.fetchProjects()
