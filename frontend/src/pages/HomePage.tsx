@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import AuthPanel from '../components/AuthPanel'
 import NewProjectForm from '../components/NewProjectForm'
 import ProjectList from '../components/ProjectList'

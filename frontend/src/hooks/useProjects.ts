@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { Counter, CounterCreate, PatternItem, PatternItemCreate, PatternItemUpdate, Project, ProjectCreate } from '../types'
+import type { CounterCreate, PatternItem, PatternItemCreate, PatternItemUpdate, Project, ProjectCreate } from '../types'
 import * as api from '../lib/api'
 import { useAuthContext } from '../context/AuthContext'
 import { useLocalProjects } from './useLocalProjects'

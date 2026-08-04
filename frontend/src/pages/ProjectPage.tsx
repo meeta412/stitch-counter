@@ -48,6 +48,7 @@ export default function ProjectPage() {
   }
 
   async function handleRename() {
+    if (!project) return
     const trimmed = nameDraft.trim()
     if (!trimmed) return
     await updateProject(project.id, trimmed)
