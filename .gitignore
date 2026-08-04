@@ -4,6 +4,9 @@ backend/venv/
 __pycache__/
 *.pyc
 
+# Lockfile — regenerate locally with: npm install --userconfig=.npmrc
+frontend/package-lock.json
+
 # Environment
 .env
 frontend/.env
