@@ -1,5 +1,5 @@
 {
-  "installCommand": "npm install --registry=https://registry.npmjs.org/",
+  "installCommand": "npm install --userconfig=.npmrc --registry=https://registry.npmjs.org/",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite"
