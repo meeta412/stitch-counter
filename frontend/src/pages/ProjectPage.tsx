@@ -4,6 +4,7 @@ import AddCounterForm from '../components/AddCounterForm'
 import Counter from '../components/Counter'
 import PatternChecklist from '../components/PatternChecklist'
 import PatternImport from '../components/PatternImport'
+import TrashIcon from '../components/icons/TrashIcon'
 import { useProjectsContext } from '../context/ProjectsContext'
 
 type Tab = 'counters' | 'pattern'
@@ -25,7 +26,7 @@ export default function ProjectPage() {
     replacePatternItems,
     parsePatternFile,
   } = useProjectsContext()
-  const [tab, setTab] = useState<Tab>('counters')
+  const [tab, setTab] = useState<Tab>('pattern')
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
 
@@ -101,20 +102,21 @@ export default function ProjectPage() {
             </button>
             <button
               type="button"
-              className="btn-danger"
+              className="rounded-lg p-2 text-yarn-400 transition hover:bg-red-50 hover:text-red-600"
+              aria-label="Delete project"
               onClick={() => {
-                if (window.confirm('Delete this project?')) {
+                if (window.confirm(`Delete "${project.name}"? This cannot be undone.`)) {
                   void deleteProject(project.id).then(() => navigate('/'))
                 }
               }}
             >
-              Delete
+              <TrashIcon className="size-5" />
             </button>
           </div>
         </div>
 
         <div className="flex gap-2 rounded-2xl bg-yarn-100 p-1">
-          {(['counters', 'pattern'] as const).map((option) => (
+          {(['pattern', 'counters'] as const).map((option) => (
             <button
               key={option}
               type="button"
@@ -157,14 +159,6 @@ export default function ProjectPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {isCloud && (
-            <PatternImport
-              onParse={(file) => parsePatternFile(project.id, file)}
-              onSave={async (items) => {
-                await replacePatternItems(project.id, items)
-              }}
-            />
-          )}
           <PatternChecklist
             items={project.patternItems}
             onToggle={(itemId, completed) =>
@@ -178,6 +172,14 @@ export default function ProjectPage() {
               void addPatternItem(project.id, { rowNumber, instruction })
             }
           />
+          {isCloud && (
+            <PatternImport
+              onParse={(file) => parsePatternFile(project.id, file)}
+              onSave={async (items) => {
+                await replacePatternItems(project.id, items)
+              }}
+            />
+          )}
         </div>
       )}
     </div>

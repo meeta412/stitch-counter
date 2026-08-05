@@ -7,7 +7,7 @@ A mobile-friendly web app for counting stitches and rows while knitting or croch
 - **Frontend:** React + TypeScript + Vite + Tailwind CSS
 - **Backend:** FastAPI + SQLAlchemy
 - **Auth / DB:** Supabase (optional for Phase 1 local-only mode)
-- **AI:** Gemini for pattern parsing (Phase 4)
+- **AI:** OpenAI for pattern parsing (Phase 4)
 
 ## Quick start
 
@@ -57,7 +57,7 @@ For cloud sync and pattern import:
   - **Site URL:** `http://localhost:5173`
   - **Redirect URLs:** `http://localhost:5173/**`
 - Set `SUPABASE_URL` in `backend/.env` to the **same** project URL as `VITE_SUPABASE_URL` in `frontend/.env`
-- Add a `GEMINI_API_KEY` for AI pattern parsing
+- Add an `OPENAI_API_KEY` for AI pattern parsing
 - Install [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) if you want image/screenshot parsing
 
 ## Features
@@ -81,7 +81,7 @@ For cloud sync and pattern import:
 ### Phase 4 — AI pattern import
 - Upload PDF or image
 - Extract text (PDF parser or OCR)
-- Gemini converts pattern into structured checklist
+- OpenAI converts pattern into structured checklist
 - Review preview before saving
 
 ## Project structure
@@ -99,4 +99,4 @@ stitch-counter/
 - Frontend proxies `/api` to `http://localhost:8000` in dev
 - Backend defaults to SQLite (`backend/stitch_counter.db`) for local development
 - Set `DATABASE_URL` to a Supabase Postgres connection string for production
-- Pattern parsing requires sign-in and a configured `GEMINI_API_KEY`
+- Pattern parsing requires sign-in and a configured `OPENAI_API_KEY`

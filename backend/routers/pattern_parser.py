@@ -2,17 +2,17 @@ import json
 import re
 from io import BytesIO
 
-import google.generativeai as genai
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
 import models
 from auth import AuthUser, get_current_user
-from config import settings
 from database import get_db
 from routers.projects import get_project_or_404
 from schemas import PatternItemRead
+from services.llm import LLMError, generate_text
+from services.text_cleanup import normalize_extracted_text
 
 router = APIRouter(prefix='/projects', tags=['pattern-parser'])
 
@@ -20,7 +20,7 @@ router = APIRouter(prefix='/projects', tags=['pattern-parser'])
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     reader = PdfReader(BytesIO(file_bytes))
     pages = [page.extract_text() or '' for page in reader.pages]
-    return '\n'.join(pages).strip()
+    return normalize_extracted_text('\n'.join(pages))
 
 
 def extract_text_from_image(file_bytes: bytes) -> str:
@@ -34,7 +34,7 @@ def extract_text_from_image(file_bytes: bytes) -> str:
         ) from exc
 
     image = Image.open(BytesIO(file_bytes))
-    return pytesseract.image_to_string(image).strip()
+    return normalize_extracted_text(pytesseract.image_to_string(image))
 
 
 def extract_text(file_name: str, file_bytes: bytes) -> str:
@@ -49,36 +49,36 @@ def extract_text(file_name: str, file_bytes: bytes) -> str:
     )
 
 
-def parse_rows_with_gemini(pattern_text: str) -> list[dict]:
-    if not settings.gemini_api_key:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail='GEMINI_API_KEY is not configured',
-        )
-
-    genai.configure(api_key=settings.gemini_api_key)
-    model = genai.GenerativeModel('gemini-2.0-flash')
-
+def parse_rows_with_llm(pattern_text: str) -> list[dict]:
     prompt = f"""
 You are helping knitters and crocheters turn pattern text into a row-by-row checklist.
 
 Return ONLY valid JSON as an array of objects with this shape:
 [
-  {{"row": 1, "instruction": "Cast on 80 stitches", "stitch_count": 80}}
+  {{"row": 1, "instruction": "Chain 1. 10 Hdc. Join with SS to first Hdc. (10)", "stitch_count": 10}}
 ]
 
 Rules:
-- Keep one object per row or round when possible.
+- One object per round or row (e.g. "Round 1", "Round 2", "Rows 11-16").
+- Keep the full instruction for each round on a single line — do NOT split "Chain 1" into its own row.
+- For ranges like "Rounds 11-16: Repeat round 9-10", use one checklist item.
+- If there are any preliminary instructions (e.g. "Magic Ring"), use one checklist item for each of them.
 - Use short, actionable instructions.
-- stitch_count is optional and should be omitted when unknown.
+- stitch_count is optional — use the number in parentheses when present.
+- Skip materials, gauge, stitch definitions, and notes unless they are actual work rows.
 - Do not include markdown or commentary.
 
 Pattern text:
 {pattern_text}
 """
 
-    response = model.generate_content(prompt)
-    raw_text = (response.text or '').strip()
+    try:
+        raw_text = generate_text(prompt).strip()
+    except LLMError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
 
     json_match = re.search(r'\[.*\]', raw_text, re.DOTALL)
     if not json_match:
@@ -124,7 +124,7 @@ async def parse_pattern(
             detail='No text could be extracted from the uploaded file',
         )
 
-    rows = parse_rows_with_gemini(pattern_text)
+    rows = parse_rows_with_llm(pattern_text)
 
     preview_items: list[models.PatternItem] = []
     for index, row in enumerate(rows, start=1):

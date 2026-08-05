@@ -8,7 +8,9 @@ class Settings(BaseSettings):
     supabase_url: str = ''
     supabase_jwt_secret: str = ''
     supabase_service_role_key: str = ''
-    gemini_api_key: str = ''
+    openai_api_key: str = ''
+    openai_model: str = 'gpt-4o-mini'
+    ssl_verify: bool = True
     cors_origins: str = 'http://localhost:5173'
 
 

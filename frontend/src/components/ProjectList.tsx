@@ -37,7 +37,7 @@ export default function ProjectList({ projects, activeProjectId }: ProjectListPr
                 </p>
               </div>
               <div className={`text-sm ${isActive ? 'text-yarn-100' : 'text-yarn-600'}`}>
-                {project.counters.length} counters
+                {project.counters.length} rows left
               </div>
             </div>
           </Link>
