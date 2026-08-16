@@ -23,6 +23,7 @@ export default function ProjectPage() {
     addPatternItem,
     updatePatternItem,
     deletePatternItem,
+    reorderPatternItem,
     replacePatternItems,
     parsePatternFile,
   } = useProjectsContext()
@@ -168,6 +169,9 @@ export default function ProjectPage() {
               void updatePatternItem(project.id, itemId, { notes })
             }
             onDelete={(itemId) => void deletePatternItem(project.id, itemId)}
+            onReorder={(itemId, direction) =>
+              void reorderPatternItem(project.id, itemId, direction)
+            }
             onAddRow={(rowNumber, instruction) =>
               void addPatternItem(project.id, { rowNumber, instruction })
             }

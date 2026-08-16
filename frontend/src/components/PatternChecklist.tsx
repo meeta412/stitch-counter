@@ -1,5 +1,7 @@
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import type { PatternItem } from '../types'
+import type { ReorderDirection } from '../lib/reorderPatternItems'
 import TrashIcon from './icons/TrashIcon'
 
 interface PatternChecklistProps {
@@ -7,6 +9,7 @@ interface PatternChecklistProps {
   onToggle: (itemId: string, completed: boolean) => void
   onNotesChange: (itemId: string, notes: string) => void
   onDelete: (itemId: string) => void
+  onReorder: (itemId: string, direction: ReorderDirection) => void
   onAddRow: (rowNumber: number, instruction: string) => void
 }
 
@@ -35,6 +38,7 @@ export default function PatternChecklist({
   onToggle,
   onNotesChange,
   onDelete,
+  onReorder,
   onAddRow,
 }: PatternChecklistProps) {
   const [instruction, setInstruction] = useState('')
@@ -95,13 +99,35 @@ export default function PatternChecklist({
       </div>
 
       <div className="space-y-3">
-        {sortedItems.map((item) => {
+        {sortedItems.map((item, index) => {
           const hasNote = Boolean(item.notes.trim())
           const isEditingNote = openNotesId === item.id
+          const isFirst = index === 0
+          const isLast = index === sortedItems.length - 1
 
           return (
             <div key={item.id} className="card space-y-2">
               <div className="flex items-start gap-3">
+                <div className="flex shrink-0 flex-col gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => onReorder(item.id, 'up')}
+                    disabled={isFirst}
+                    className="rounded p-0.5 text-yarn-400 transition hover:bg-yarn-100 hover:text-yarn-700 disabled:cursor-not-allowed disabled:opacity-30"
+                    aria-label={`Move row ${item.rowNumber} up`}
+                  >
+                    <ChevronUpIcon className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onReorder(item.id, 'down')}
+                    disabled={isLast}
+                    className="rounded p-0.5 text-yarn-400 transition hover:bg-yarn-100 hover:text-yarn-700 disabled:cursor-not-allowed disabled:opacity-30"
+                    aria-label={`Move row ${item.rowNumber} down`}
+                  >
+                    <ChevronDownIcon className="size-4" />
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() => onToggle(item.id, !item.completed)}

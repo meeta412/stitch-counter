@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { CounterCreate, PatternItem, PatternItemCreate, PatternItemUpdate, Project, ProjectCreate } from '../types'
+import { reorderPatternItems, type ReorderDirection } from '../lib/reorderPatternItems'
 import * as api from '../lib/api'
 import { useAuthContext } from '../context/AuthContext'
 import { useLocalProjects } from './useLocalProjects'
@@ -249,6 +250,50 @@ export function useProjects() {
     [isCloud, local],
   )
 
+  const reorderPatternItem = useCallback(
+    async (projectId: string, itemId: string, direction: ReorderDirection) => {
+      const currentItems = (isCloud ? projects : local.projects).find(
+        (project) => project.id === projectId,
+      )?.patternItems
+
+      if (!currentItems) return
+
+      const reordered = reorderPatternItems(currentItems, itemId, direction)
+      const changed = reordered.filter((item) => {
+        const before = currentItems.find((existing) => existing.id === item.id)
+        return before && before.rowNumber !== item.rowNumber
+      })
+
+      if (changed.length === 0) return
+
+      if (!isCloud) {
+        local.reorderPatternItem(projectId, itemId, direction)
+        return
+      }
+
+      const updated = await Promise.all(
+        changed.map((item) =>
+          api.updatePatternItemApi(projectId, item.id, { rowNumber: item.rowNumber }),
+        ),
+      )
+
+      setProjects((current) =>
+        current.map((project) =>
+          project.id === projectId
+            ? {
+                ...project,
+                patternItems: project.patternItems.map((item) => {
+                  const next = updated.find((saved) => saved.id === item.id)
+                  return next ?? item
+                }),
+              }
+            : project,
+        ),
+      )
+    },
+    [isCloud, local, projects],
+  )
+
   const parsePatternFile = useCallback(
     async (projectId: string, file: File) => {
       if (!isCloud) {
@@ -274,6 +319,7 @@ export function useProjects() {
     updatePatternItem,
     deletePatternItem,
     replacePatternItems,
+    reorderPatternItem,
     parsePatternFile,
     refreshCloudProjects,
     storageKey: STORAGE_KEY,

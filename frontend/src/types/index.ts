@@ -42,6 +42,7 @@ export interface PatternItemCreate {
 }
 
 export interface PatternItemUpdate {
+  rowNumber?: number
   instruction?: string
   completed?: boolean
   notes?: string

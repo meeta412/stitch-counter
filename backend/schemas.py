@@ -29,6 +29,7 @@ class PatternItemCreate(BaseModel):
 
 
 class PatternItemUpdate(BaseModel):
+    row_number: int | None = None
     instruction: str | None = None
     completed: bool | None = None
     notes: str | None = None

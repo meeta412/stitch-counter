@@ -1,4 +1,5 @@
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/solid'
+import TrashIcon from './icons/TrashIcon'
 import type { Counter as CounterType } from '../types'
 
 interface CounterProps {
@@ -29,9 +30,10 @@ export default function Counter({
           <button
             type="button"
             onClick={onDelete}
-            className="text-sm text-yarn-500 transition hover:text-red-600"
+            className="rounded-lg p-1.5 text-yarn-400 transition hover:bg-red-50 hover:text-red-600"
+            aria-label={`Remove ${counter.label}`}
           >
-            Remove
+            <TrashIcon className="size-5" />
           </button>
         )}
       </div>

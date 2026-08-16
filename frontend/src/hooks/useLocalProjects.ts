@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Counter, CounterCreate, PatternItem, PatternItemCreate, PatternItemUpdate, Project, ProjectCreate } from '../types'
+import { reorderPatternItems, type ReorderDirection } from '../lib/reorderPatternItems'
 import { createId, loadFromStorage, saveToStorage, STORAGE_KEY } from '../lib/storage'
 
 function createEmptyProject(name: string, craftType = 'knitting'): Project {
@@ -143,6 +144,22 @@ export function useLocalProjects() {
     )
   }, [])
 
+  const reorderPatternItem = useCallback(
+    (projectId: string, itemId: string, direction: ReorderDirection) => {
+      setProjects((current) =>
+        current.map((project) =>
+          project.id === projectId
+            ? {
+                ...project,
+                patternItems: reorderPatternItems(project.patternItems, itemId, direction),
+              }
+            : project,
+        ),
+      )
+    },
+    [],
+  )
+
   const clearProjects = useCallback(() => {
     setProjects([])
     localStorage.removeItem(STORAGE_KEY)
@@ -164,6 +181,7 @@ export function useLocalProjects() {
     updatePatternItem,
     deletePatternItem,
     replacePatternItems,
+    reorderPatternItem,
     clearProjects,
     importProjects,
   }

@@ -175,6 +175,7 @@ export async function updatePatternItemApi(
   const data = await request<ApiPatternItem>(`/projects/${projectId}/pattern-items/${itemId}`, {
     method: 'PATCH',
     body: JSON.stringify({
+      row_number: input.rowNumber,
       instruction: input.instruction,
       completed: input.completed,
       notes: input.notes,
