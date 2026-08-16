@@ -51,11 +51,14 @@ Copy `.env.example` to `.env` in the project root and fill in values as needed.
 For cloud sync and pattern import:
 
 - Create a [Supabase](https://supabase.com) project
-- Enable Email and Google auth providers
+- Enable Email auth provider
 - Copy project URL, anon key, and JWT secret
 - In Supabase **Authentication → URL Configuration**, set:
-  - **Site URL:** `http://localhost:5173`
-  - **Redirect URLs:** `http://localhost:5173/**`
+  - **Site URL:** your app URL (e.g. `http://localhost:5173` or `https://your-app.vercel.app`)
+  - **Redirect URLs:** add every URL you use:
+    - `http://localhost:5173/**`
+    - `https://your-app.vercel.app/**`
+    - `https://*.vercel.app/**` (for preview deploys)
 - Set `SUPABASE_URL` in `backend/.env` to the **same** project URL as `VITE_SUPABASE_URL` in `frontend/.env`
 - Add an `OPENAI_API_KEY` for AI pattern parsing
 - Install [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) if you want image/screenshot parsing
@@ -69,7 +72,7 @@ For cloud sync and pattern import:
 - Responsive, thumb-friendly UI
 
 ### Phase 2 — Cloud sync
-- Supabase login (email + Google)
+- Supabase login (email)
 - JWT-protected FastAPI routes
 - Migrate local projects to cloud on first login
 

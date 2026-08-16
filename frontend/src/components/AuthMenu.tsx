@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuthContext } from '../context/AuthContext'
 
 export default function AuthMenu() {
-  const { user, loading, isConfigured, signIn, signUp, signInWithGoogle, signOut } = useAuthContext()
+  const {
+    user,
+    loading,
+    authError,
+    isConfigured,
+    signIn,
+    signUp,
+    signOut,
+  } = useAuthContext()
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -11,6 +19,12 @@ export default function AuthMenu() {
   const [message, setMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (authError) {
+      setOpen(true)
+    }
+  }, [authError])
 
   useEffect(() => {
     if (!open) return
@@ -85,6 +99,12 @@ export default function AuthMenu() {
         <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-yarn-200 bg-white p-4 shadow-lg">
           <p className="mb-3 text-sm text-yarn-600">Sync projects across devices</p>
 
+          {(authError || error) && (
+            <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {error ?? authError}
+            </p>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-2">
             <input
               className="input-field text-sm"
@@ -103,20 +123,11 @@ export default function AuthMenu() {
               required
               minLength={6}
             />
-            {error && <p className="text-xs text-red-600">{error}</p>}
             {message && <p className="text-xs text-yarn-700">{message}</p>}
             <button type="submit" disabled={submitting} className="btn-primary w-full text-sm">
               {submitting ? 'Please wait...' : mode === 'signup' ? 'Create account' : 'Sign in'}
             </button>
           </form>
-
-          <button
-            type="button"
-            onClick={() => void signInWithGoogle()}
-            className="btn-secondary mt-2 w-full text-sm"
-          >
-            Continue with Google
-          </button>
 
           <button
             type="button"

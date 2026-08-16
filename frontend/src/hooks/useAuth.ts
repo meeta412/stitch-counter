@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
+import { getAuthRedirectUrl, hasOAuthCallbackParams, clearAuthParamsFromUrl, parseAuthErrorFromUrl } from '../lib/auth'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(isSupabaseConfigured)
+  const [authError, setAuthError] = useState<string | null>(() => parseAuthErrorFromUrl())
 
   useEffect(() => {
     if (!supabase) {
@@ -13,19 +15,65 @@ export function useAuth() {
       return
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setUser(data.session?.user ?? null)
-      setLoading(false)
-    })
+    let cancelled = false
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const client = supabase
+
+    async function initAuth() {
+      try {
+        if (hasOAuthCallbackParams()) {
+          const urlError = parseAuthErrorFromUrl()
+          if (urlError) {
+            if (!cancelled) setAuthError(urlError)
+            return
+          }
+
+          const code = new URLSearchParams(window.location.search).get('code')
+          const { data, error } = code
+            ? await client.auth.exchangeCodeForSession(code)
+            : await client.auth.getSession()
+
+          if (error) {
+            if (!cancelled) setAuthError(error.message)
+            return
+          }
+
+          clearAuthParamsFromUrl()
+          if (!cancelled) {
+            setSession(data.session)
+            setUser(data.session?.user ?? null)
+          }
+          return
+        }
+
+        const { data, error } = await client.auth.getSession()
+        if (error && !cancelled) {
+          setAuthError(error.message)
+        }
+        if (!cancelled) {
+          setSession(data.session)
+          setUser(data.session?.user ?? null)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void initAuth()
+
+    const { data: listener } = client.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
       setUser(nextSession?.user ?? null)
       setLoading(false)
+
+      if (event === 'SIGNED_IN') {
+        setAuthError(null)
+        clearAuthParamsFromUrl()
+      }
     })
 
     return () => {
+      cancelled = true
       listener.subscription.unsubscribe()
     }
   }, [])
@@ -36,7 +84,7 @@ export function useAuth() {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: getAuthRedirectUrl(),
       },
     })
     if (error) throw error
@@ -45,17 +93,6 @@ export function useAuth() {
   const signIn = useCallback(async (email: string, password: string) => {
     if (!supabase) throw new Error('Supabase is not configured')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
-  }, [])
-
-  const signInWithGoogle = useCallback(async () => {
-    if (!supabase) throw new Error('Supabase is not configured')
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    })
     if (error) throw error
   }, [])
 
@@ -69,10 +106,10 @@ export function useAuth() {
     user,
     session,
     loading,
+    authError,
     isConfigured: isSupabaseConfigured,
     signUp,
     signIn,
-    signInWithGoogle,
     signOut,
   }
 }
